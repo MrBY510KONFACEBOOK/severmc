@@ -16,8 +16,13 @@ jobs:
     - name: Install code-server
       run: |
         curl -fsSL https://code-server.dev/install.sh | sh
-
+    
     - name: Start code-server
       run: |
-        code-server --port 3000 --auth none > /dev/null 2>&1
-        ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" -R 80:localhost:3000 serveo.net
+        code-server --port 3000 --auth none > /dev/null 2>&1 &  # Start code-server in the background
+        sleep 5  # Wait for code-server to start (adjust as necessary)
+
+    - name: Run SSH command (example)
+      run: |
+        ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" -R 80:localhost:3000 serveo.net sleep 10
+        
