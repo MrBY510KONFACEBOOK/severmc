@@ -1,0 +1,23 @@
+name: Code-Server via Serveo
+
+on:
+  push:
+    branches:
+      - main  # Adjust to your main branch name
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install code-server
+      run: |
+        curl -fsSL https://code-server.dev/install.sh | sh
+
+    - name: Start code-server
+      run: |
+        code-server --port 3000 --auth none > /dev/null 2>&1
+        ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" -R 80:localhost:3000 serveo.net
