@@ -35,8 +35,13 @@ async function getVideoInfo() {
 
         qualityOptions.innerHTML = data.formats.map(format => `
             <div class="quality-option">
-                <span>${format.quality} (${format.ext})</span>
-                <button onclick="downloadVideo('${url}', '${format.format_id}')">
+                <span>${format.resolution} - ${format.ext} 
+                      ${format.fps}fps ${format.tbr}
+                      <small>(~${format.filesize})</small></span>
+                <button 
+                    class="download-button"
+                    onclick="downloadVideo('${url}', '${format.format_id}')"
+                >
                     Download
                 </button>
             </div>
@@ -51,7 +56,14 @@ async function getVideoInfo() {
 }
 
 async function downloadVideo(url, formatId) {
+    const button = event.target;
+    const originalText = button.textContent;
+    
     try {
+        // Add loading state
+        button.classList.add('loading');
+        button.textContent = 'Preparing...';
+
         const response = await fetch('/download', {
             method: 'POST',
             headers: {
@@ -68,16 +80,38 @@ async function downloadVideo(url, formatId) {
             throw new Error(error.error || 'Download failed');
         }
 
-        const blob = await response.blob();
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = downloadUrl;
-        a.download = 'video'; // The actual filename will be set by the server
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(downloadUrl);
-        document.body.removeChild(a);
+        const data = await response.json();
+        
+        // Show preparing state
+        button.classList.remove('loading');
+        button.textContent = 'Starting...';
+        button.style.backgroundColor = '#28a745';
+
+        // Open the video URL in a new tab
+        window.open(data.url, '_blank');
+
+        // Show success state
+        button.textContent = 'Started!';
+        button.style.backgroundColor = '#28a745';
+        
+        // Reset button after 2 seconds
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.backgroundColor = '';
+        }, 2000);
+
     } catch (error) {
-        alert(error.message);
+        // Show error state
+        button.classList.remove('loading');
+        button.textContent = 'Error!';
+        button.style.backgroundColor = '#dc3545';
+        
+        // Reset button after 2 seconds
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.backgroundColor = '';
+        }, 2000);
+        
+        console.error(error);
     }
 }
